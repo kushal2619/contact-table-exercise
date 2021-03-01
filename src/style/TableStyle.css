@@ -1,0 +1,5 @@
+.contact-table {
+    margin: 20px;
+    width: calc(100vw - 40px);
+    border-spacing: 0 15px;
+}
