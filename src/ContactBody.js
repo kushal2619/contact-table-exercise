@@ -1,8 +1,7 @@
 import React, { Component } from 'react'
 
-import ContactListInstance from './data/database.js';
+import {updateIDB, deleteInIDB} from "./services/IndexedDBServices.js"
 import CreateContactForm from "./CreateContactForm.js";
-//import OptionCell from './OptionCell';
 import "./style/ContactBodyStyle.css";
 import starSVG from "./img/star.svg";
 import blueStarSVG from "./img/blueStar.png";
@@ -22,10 +21,12 @@ class ContactBody extends Component {
   
   handleStar = (event) => {
     const id = event.target.dataset.name.split("-")[1];
+    let updatedContact = {};
 
     const updatedContactList = this.props.contactList.map(contact => {
       if(contact.uid === id) {
-        return {...contact, isFavourite: !contact.isFavourite}
+        updatedContact = {...contact, isFavourite: !contact.isFavourite}
+        return updatedContact
       } else {
         return contact
       }
@@ -35,7 +36,13 @@ class ContactBody extends Component {
       updatedContactList: updatedContactList,
     }
     this.props.onAction(UPDATE_CONTACT_LIST, updatedState);
-    ContactListInstance.set(updatedContactList);
+    updateIDB(updatedContact)
+    .then(() => {
+      console.log(`successfully updated`);
+    })
+    .catch(err => {
+        console.log(err.message);
+    })
   }
 
   handleEdit = (event) => {
@@ -58,7 +65,13 @@ class ContactBody extends Component {
       updatedContactList: updatedContactList,
     }
     this.props.onAction(UPDATE_CONTACT_LIST, updatedState);
-    ContactListInstance.set(updatedContactList);
+    deleteInIDB(id)
+    .then((res) => {
+      console.log(res);
+    })
+    .catch(err => {
+        console.log(err.message);
+    })
   }
 
   handleEnterRow = (event) => {

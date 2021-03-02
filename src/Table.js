@@ -3,9 +3,9 @@ import React, { Component } from 'react'
 import Header from "./Header.js";
 import ContactBody from "./ContactBody.js";
 import Modal from "./Modal.js"
-//import CreateContactForm from "./CreateContactForm.js";
 import "./style/TableStyle.css";
-import ContactListInstance from './data/database.js';
+//import ContactListInstance from './data/database.js';
+import {fetchFromIDB, initIDB, closeIDB, updateIDB} from "./services/IndexedDBServices.js"
 import { UPDATE_CONTACT_LIST, HANDLE_MODAL_DISPLAY } from "./data/constants.js";
 
 export class Table extends Component {
@@ -22,14 +22,55 @@ export class Table extends Component {
   }
 
   componentDidMount() {
-    //console.log("contact list updated");
-    this.setState({
-        contactList: ContactListInstance.contactList,
+    initIDB()
+    .then(() => {
+      console.log("Indexed DB successfully opened");
+    })
+    .catch(err => {
+      console.log(err.message);
     })
 
-    const starredContactList = ContactListInstance.contactList.filter(contact => contact.isFavourite)
-    this.setState({
-      starredContactList: starredContactList
+  //   let test1 = {
+  //     uid: "abc123",
+  //     isFavourite: true,
+  //     name: {
+  //       first: "Kushal",
+  //       last: "Shah"
+  //     },
+  //     job: {
+  //       companyName: "Sprinklr",
+  //       title: "Product Engineer"
+  //     },
+  //     email: {
+  //       emailID: "kushal.shah@sprinklr.com",
+  //     },
+  //     phone: {
+  //       number: "7043494349",
+  //     }
+  // };
+  // updateIDB(test1)
+
+    let contactList = [];
+    fetchFromIDB()
+    .then(res => {
+      contactList = res.map(el => el.draft);
+      console.log(contactList)
+      const starredContactList = contactList.filter(contact => contact.isFavourite)
+
+      this.setState({
+          contactList: contactList,
+          starredContactList: starredContactList,
+      })
+    })
+  }
+  
+  componentWillUnmount() {
+    closeIDB()
+    .then(() => {
+      console.log("Indexed DB successfully closed");
+    })
+    .catch(err => {
+      console.log(err.message);
     })
   }
 

@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 import "./style/CreateContactFormStyle.css"
 
-import ContactListInstance from "./data/database.js";
+import {updateIDB} from "./services/IndexedDBServices.js"
+//import ContactListInstance from "./data/database.js";
 import personSVG from "./img/person.svg";
 import officeSVG from "./img/office.svg";
 import mailSVG from "./img/mail.svg";
@@ -40,7 +41,7 @@ export class CreateContactForm extends Component {
         const id = (this.props.contactDraft.uid) || (Date.now().toString(36) + Math.random().toString(36).slice(2));
         const isFavourite = this.props.contactDraft.isFavourite
 
-        const obj = {
+        const draft = {
             uid: id,
             isFavourite: isFavourite,
             name: {
@@ -61,23 +62,30 @@ export class CreateContactForm extends Component {
 
         let updatedContactList = [];
 
-        if(obj.uid === this.props.contactDraft.uid) {
+        if(draft.uid === this.props.contactDraft.uid) {
             updatedContactList = this.props.contactList.map(contact => {
-                if(contact.uid === obj.uid) {
-                    return obj;
+                if(contact.uid === draft.uid) {
+                    return draft;
                 } else {
                     return contact;
                 }
             })
         } else {
-            updatedContactList = [...this.props.contactList, obj];
+            updatedContactList = [...this.props.contactList, draft];
         }
 
         let updatedState = {
             updatedContactList: updatedContactList,
         }
         this.props.onAction(UPDATE_CONTACT_LIST, updatedState);
-        ContactListInstance.set(updatedContactList);
+        updateIDB(draft)
+        .then(() => {
+            console.log(`successfully updated`);
+        })
+        .catch(err => {
+            console.log(err.message);
+        })
+        //ContactListInstance.set(updatedContactList);
 
         updatedState = {
             showModal: false,
