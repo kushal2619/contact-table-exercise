@@ -3,12 +3,13 @@ import React, { Component } from 'react'
 import CreateContactForm from "./CreateContactForm.js";
 import "./style/HeaderStyle.css";
 import addSVG from "./img/add.svg";
+import {HANDLE_MODAL_DISPLAY} from "./data/constants.js"
 
 export class Header extends Component {
 
-    handleOnClickAddContactbutton = () => {
-        const obj = {
-            starContact: false,
+    handleAddContactbutton = () => {
+        const draft = {
+            isFavourite: false,
             name: {
               first: "",
               last: ""
@@ -24,8 +25,12 @@ export class Header extends Component {
               number: "",
             }
         };
-        this.props.updateModalContent(CreateContactForm);
-        this.props.handleModalDisplay(true,obj);
+        const updatedState = {
+          showModal: true,
+          formContactDraft: draft,
+          modalContent: CreateContactForm
+        }
+        this.props.onAction(HANDLE_MODAL_DISPLAY, updatedState);
     }
 
     render() {
@@ -40,7 +45,7 @@ export class Header extends Component {
                         <img src={addSVG} 
                                 alt="Add Contact" 
                                 className="add-button"
-                                onClick={this.handleOnClickAddContactbutton}
+                                onClick={this.handleAddContactbutton}
                         />
                     </th>
                 </tr>

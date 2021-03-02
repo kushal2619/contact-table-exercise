@@ -6,82 +6,92 @@ import Modal from "./Modal.js"
 //import CreateContactForm from "./CreateContactForm.js";
 import "./style/TableStyle.css";
 import ContactListInstance from './data/database.js';
+import { UPDATE_CONTACT_LIST, HANDLE_MODAL_DISPLAY } from "./data/constants.js";
 
 export class Table extends Component {
 
-    constructor() {
-        super();
-        this.state = {
-            contactList: [],
-            showModal: false,
-            formContactObj: null,
-            modalContent: null,
-        }
+  constructor() {
+    super();
+    this.state = {
+      contactList: [],
+      starredContactList: [],
+      showModal: false,
+      formContactDraft: null,
+      modalContent: null,
     }
+  }
 
-    componentDidMount() {
-        //console.log("contact list updated");
+  componentDidMount() {
+    //console.log("contact list updated");
+    this.setState({
+        contactList: ContactListInstance.contactList,
+    })
+
+    const starredContactList = ContactListInstance.contactList.filter(contact => contact.isFavourite)
+    this.setState({
+      starredContactList: starredContactList
+    })
+  }
+
+  onAction = (actionType, updatedState) => {
+
+    switch (actionType) {
+      case UPDATE_CONTACT_LIST:
+        const {updatedContactList} = updatedState
+        const starredContactList = updatedContactList.filter(contact => contact.isFavourite)
+
         this.setState({
-            contactList: ContactListInstance.contactList,
+            contactList: updatedContactList,
+            starredContactList: starredContactList
         })
-    }
-
-    updateContactList = (updatedList) => {
-        this.setState({
-            contactList: updatedList
-        })
-    }
-
-    updateModalContent = (modalContent) => {
-        this.setState({
-            modalContent: modalContent
-        })
-    }
-
-    handleModalDisplay = (showModal, formContactObj) => {
+        break;
+      
+      case HANDLE_MODAL_DISPLAY:
+        const {showModal, formContactDraft, modalContent} = updatedState
         this.setState({
             showModal: showModal,
-            formContactObj: formContactObj,
+            formContactDraft: formContactDraft,
+            modalContent: modalContent
         })
+        break;
+
+      default:
+        console.log(`unknown action ${actionType} is found in onAction.`)
     }
 
-    render() {
+  }
 
-        const starredContactList = this.state.contactList.filter(contact => contact.starContact);
 
-        return (
-            <>
-                <table className="contact-table">
-                    <Header handleModalDisplay = {this.handleModalDisplay}
-                            updateModalContent = {this.updateModalContent}
-                    />
-                    {
-                        (starredContactList.length)? <ContactBody   isStarredContacts={true} 
-                                                                    contactList={this.state.contactList}
-                                                                    updateModalContent={this.updateModalContent}
-                                                                    updateContactList={this.updateContactList}
-                                                                    handleModalDisplay={this.handleModalDisplay}
-                                                    />
-                                                    :null
-                    }
-                    <ContactBody    isStarredContacts={false} 
-                                    contactList={this.state.contactList}
-                                    updateModalContent={this.updateModalContent}
-                                    updateContactList={this.updateContactList}
-                                    handleModalDisplay={this.handleModalDisplay}
-                    />
-                </table>
+  render() {
+    return (
+      <>
+        <table className="contact-table">
+          <Header onAction = {this.onAction}/>
 
-                <Modal  show={this.state.showModal}
-                        handleModalDisplay={this.handleModalDisplay}
-                        contactList = {this.state.contactList}
-                        contactObj = {this.state.formContactObj}
-                        updateContactList={this.updateContactList}
-                        children = {this.state.modalContent}
-                />
-            </>
-        )
-    }
+          { (this.state.starredContactList.length) ? 
+            <ContactBody  isStarredContacts
+                          contactList={this.state.contactList}
+                          onAction = {this.onAction}
+            />
+            :null
+          }
+
+          <ContactBody  isStarredContacts={false} 
+                        contactList={this.state.contactList}
+                        onAction = {this.onAction}
+          />
+        </table>
+
+          <Modal  show={this.state.showModal}
+                  contactList = {this.state.contactList}
+                  contactDraft = {this.state.formContactDraft}
+                  onAction = {this.onAction}
+          >
+            {this.state.modalContent}
+          </Modal>
+      </>
+    )
+  }
 }
 
 export default Table

@@ -1,6 +1,6 @@
 let temp1 = {
     uid: "abc123",
-    starContact: true,
+    isFavourite: true,
     name: {
       first: "Kushal",
       last: "Shah"
@@ -19,7 +19,7 @@ let temp1 = {
 
 let temp2 = {
     uid: "pqr123",
-    starContact: false,
+    isFavourite: false,
     name: {
       first: "Kush",
       last: "Shah"

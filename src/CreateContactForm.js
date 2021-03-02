@@ -6,6 +6,7 @@ import personSVG from "./img/person.svg";
 import officeSVG from "./img/office.svg";
 import mailSVG from "./img/mail.svg";
 import phoneSVG from "./img/phone.svg";
+import { UPDATE_CONTACT_LIST, HANDLE_MODAL_DISPLAY } from "./data/constants.js";
 
 export class CreateContactForm extends Component {
 
@@ -13,29 +14,14 @@ export class CreateContactForm extends Component {
         super(props);
         //console.log("constructor")
         this.state = {
-            firstName: "",
-            lastName: "",
-            companyName: "",
-            jobTitle: "",
-            emailID: "",
-            phone: "",
+            firstName: this.props.contactDraft.name.first,
+            lastName: this.props.contactDraft.name.last,
+            companyName: this.props.contactDraft.job.companyName,
+            jobTitle: this.props.contactDraft.job.title,
+            emailID: this.props.contactDraft.email.emailID,
+            phone: this.props.contactDraft.phone.number,
             prvProps: this.props,
         }
-    }
-
-    static getDerivedStateFromProps(props, state) {
-        if((props.contactObj !== null) && state.prvProps !== props) {
-            return {
-                firstName: props.contactObj.name.first,
-                lastName: props.contactObj.name.last,
-                companyName: props.contactObj.job.companyName,
-                jobTitle: props.contactObj.job.title,
-                emailID: props.contactObj.email.emailID,
-                phone: props.contactObj.phone.number,
-                prvProps: props,
-            }
-        }
-        return null
     }
 
     checkAllInputValues = () => {
@@ -51,12 +37,12 @@ export class CreateContactForm extends Component {
 
     handleOnSubmit = (event) => {
         event.preventDefault();
-        const id = (this.props.contactObj.uid) || (Date.now().toString(36) + Math.random().toString(36).slice(2));
-        const starContact = this.props.contactObj.starContact
+        const id = (this.props.contactDraft.uid) || (Date.now().toString(36) + Math.random().toString(36).slice(2));
+        const isFavourite = this.props.contactDraft.isFavourite
 
         const obj = {
             uid: id,
-            starContact: starContact,
+            isFavourite: isFavourite,
             name: {
                 first: this.state.firstName,
                 last: this.state.lastName,
@@ -73,10 +59,10 @@ export class CreateContactForm extends Component {
             }
         }
 
-        let updatedContanctList = [];
+        let updatedContactList = [];
 
-        if(obj.uid === this.props.contactObj.uid) {
-            updatedContanctList = this.props.contactList.map(contact => {
+        if(obj.uid === this.props.contactDraft.uid) {
+            updatedContactList = this.props.contactList.map(contact => {
                 if(contact.uid === obj.uid) {
                     return obj;
                 } else {
@@ -84,12 +70,21 @@ export class CreateContactForm extends Component {
                 }
             })
         } else {
-            updatedContanctList = [...this.props.contactList, obj];
+            updatedContactList = [...this.props.contactList, obj];
         }
 
-        this.props.updateContactList(updatedContanctList);
-        ContactListInstance.set(updatedContanctList);
-        this.props.handleModalDisplay(false, null);
+        let updatedState = {
+            updatedContactList: updatedContactList,
+        }
+        this.props.onAction(UPDATE_CONTACT_LIST, updatedState);
+        ContactListInstance.set(updatedContactList);
+
+        updatedState = {
+            showModal: false,
+            formContactDraft: null,
+            modalContent: null
+        }
+        this.props.onAction(HANDLE_MODAL_DISPLAY, updatedState);
     }
 
     render() {
@@ -198,7 +193,13 @@ export class CreateContactForm extends Component {
 
                 <div className="form-footer">
                     <div className="footer-button" 
-                         onClick={() => this.props.handleModalDisplay(false, null)}
+                         onClick =  {() => this.props.onAction(
+                                            HANDLE_MODAL_DISPLAY, 
+                                            {   showModal: false,
+                                                formContactDraft: null,
+                                                modalContent: null
+                                            })
+                                    }
                     >
                         Cancel
                     </div>
